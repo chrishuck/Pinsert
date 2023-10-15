@@ -1,0 +1,112 @@
+###############################################################################
+## FreeCAD Macro Name: Pinsert
+##
+## Description:
+##
+## This macro can be used to insert multiple pins or pin holes into a model
+## for locating purposes. The user can select any number of points in a model.
+##
+## THEY CAN EVEN BE IN MULTIPLE SKETCHES!!!!
+##
+## When run, this macro will attach a Part:Cylinder, by its centroid, at each
+## point in the selection. The user provides the length and diameter of the 
+## pins via dialog boxes.
+##
+## The user can then rotate the cylinders to the correct orientation using the
+## Transform-At function later. By default, all cylinders will be inserted with ## their axis along the global Z-axis.
+##
+## Ultimately, the user will need to perform a boolean subtract to create the
+## holes in their base body.
+###############################################################################
+
+## METADATA
+__Name__ = 'Pinsert'
+__Comment__ = 'Inserts cylindrical pins, centered on selected sketch points'
+__Author__ = 'Chris Huck'
+__Date__ = '2023.10.15'
+__Version__ = __Date__
+__License__ = 'GPL-3.0-or-later'
+__Web__ = 'https://github.com/chrishuck/Pinsert/main/Pinsert.FCMacro'
+__Wiki__ = ''
+__Icon__ = ''
+__Xpm__ = ''
+__Help__ = 'Select the sketch points where you want the pins located'
+__Status__ = 'Stable'
+__Requires__ = 'FreeCAD'
+__Communication__ = 'https://github.com/chrishuck/Pinsert/issues'
+__Files__ = 'Pinsert.FCMacro'
+##
+
+import FreeCAD as App
+import FreeCADGui
+import Part
+
+## Get the selected point(s) that have been pre-selected
+
+sel = FreeCADGui.Selection.getSelectionEx()
+
+if sel == []:
+    print("You have not selected anything.")
+    print("Please select some points and try again.")
+else:
+
+    ## Builds the list of selection objects (i.e. The Sketch Object Names)
+    obj = []
+    for i in sel:
+        obj.append(i.Object)
+
+    ## Builds the list of sub-elements (i.e. The names of the selected vertices 
+    ## for ## each Sketch Object above)
+    sub_elements = []
+    for i in sel:
+        sub_elements.append(i.SubElementNames)
+
+    ## This section gets the diameter and length of the pin as user input via
+    ## dialog boxes
+    ## Units of diameter/radius and length are in the default units of the 
+    ## document
+    from PySide import QtGui
+    diameter_input = QtGui.QInputDialog.getText(None, "Enter Pin Diameter", "Diameter:")[0]
+    diameter = float(diameter_input)
+    radius = 0.5 * diameter
+
+    length_input = QtGui.QInputDialog.getText(None, "Enter Pin Length", "Length:")[0]
+    length = float(length_input)
+
+    doc = App.activeDocument()
+
+    ## This section will generate a cylinder, based on the user input above
+    ## and will attach it to every point in the selection set.
+
+    ## This loop steps through the Sketch Objects
+    for i, x in enumerate(obj):
+
+        ## This loop steps through the sub-elements for each Sketch Object
+        for j in sub_elements[i]:
+
+            ## This will only insert a cylinder if the sub-element is a vertex
+            if j[:6] == "Vertex":
+
+                ## This section places the cylinder at the origin, offset by 
+                ## half the height
+                
+                cylinder = doc.addObject("Part::Cylinder", "Pin")
+                cylinder.Radius = radius
+                cylinder.Height = length
+                cylinder.Placement = App.Placement(App.Vector(0, 0, 0), App.Rotation(0, 0, 0))
+
+                ## This creates the attachment offset by moving the origin of 
+                ## the cylinder to the a point in the selection set as it loops 
+                ## through the selection
+
+                ## The user will have to rotate the cylinders accordingly after
+                ## placement to achieve the desired orientation
+
+                cylinder.AttachmentOffset = App.Placement(App.Vector(0.0, 0.0, -0.5*length),  App.Rotation(0.0, 0.0, 0.0))
+                cylinder.MapReversed = False
+                cylinder.AttachmentSupport = (x, j)
+                cylinder.MapPathParameter = 0.000000
+                cylinder.MapMode = 'Translate'
+
+                doc.recompute()
+

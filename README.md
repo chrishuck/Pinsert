@@ -13,3 +13,7 @@ modify the design, and the alignment pin location sketches change, the alignment
 
 Prior to splitting the model, a Boolean Subtract operation should be performed to create the holes. The cylinder bodies that were created by the macro
 will be subtracted from the base body of the part.
+
+INSTALLATION:
+
+Copy the file Pinsert.FCMacro into the Macros folder of your choice.

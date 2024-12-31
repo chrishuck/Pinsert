@@ -4,7 +4,7 @@ Many times, when designing parts for 3D printing, the part will be physically la
 One option for dealing with this is to split the part into multiple smaller pieces, each of which will fit into the build volume of the printer. 
 These pieces can later be assembled into the full part. The use of alignment pins eases assembly of these separate pieces.
 
-Pinsert is a FreeCAD macro that can be used to quickly create holes for these alignment pins withing a given model.
+Pinsert is a FreeCAD macro that can be used to quickly create holes for these alignment pins within a given model.
 
 The user can create sketches on the splitting planes of the model. These sketches contain lines whose endpoints can be selected to tell the
 macro where to insert a cylinder that will define the alignment pin hole(s). The user will define the diameter and length of the pin hole at the
